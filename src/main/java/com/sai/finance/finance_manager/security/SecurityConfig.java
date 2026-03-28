@@ -22,9 +22,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()   // Registration + Login are public
-                        .requestMatchers("/otp/**").permitAll()    // OTP endpoints are public
-                        .anyRequest().authenticated()              // Everything else requires JWT
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/otp/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()          // WebSocket handshake
+                        .requestMatchers("/market/**").authenticated()  // ⭐ Market Data module
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
