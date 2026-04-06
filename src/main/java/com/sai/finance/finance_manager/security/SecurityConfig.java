@@ -25,7 +25,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/otp/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()          // WebSocket handshake
-                        .requestMatchers("/market/**").authenticated()  // ⭐ Market Data module
+                        .requestMatchers("/market/**").authenticated()
+                        .requestMatchers("/wallet/**").authenticated()// ⭐ Market Data module
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

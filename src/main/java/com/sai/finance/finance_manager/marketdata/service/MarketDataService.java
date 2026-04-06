@@ -4,6 +4,7 @@ import com.sai.finance.finance_manager.marketdata.dto.PriceDto;
 import com.sai.finance.finance_manager.marketdata.dto.SearchResultDto;
 import com.sai.finance.finance_manager.marketdata.dto.CandleDto;
 import com.sai.finance.finance_manager.marketdata.dto.StockMetricsDto;
+import com.sai.finance.finance_manager.marketdata.model.MarketStatus;
 import com.sai.finance.finance_manager.marketdata.model.SymbolState;
 import com.sai.finance.finance_manager.marketdata.util.SymbolMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class MarketDataService {
     private final MarketDataSubscriptionManager subscriptionManager;
     private final NseSymbolStore symbolStore;
     private final YahooFinanceClient yahooFinanceClient;
+    private final MarketStatusService marketStatusService;
 
     private static final Map<String, String[]> PERIOD_MAP = Map.of(
             "1d",  new String[]{"1d", "1m"},
@@ -44,11 +46,37 @@ public class MarketDataService {
     }
 
     // CURRENT PRICE (synthetic tick + real)
-    public PriceDto getCurrentPrice(String symbol) {
-        snapshotService.ensureSymbolTracked(symbol);
+    public PriceDto getCurrentPrice(String rawSymbol) {
 
+        String symbol = subscriptionManager.normalizeSymbol(rawSymbol);
+
+        snapshotService.ensureSymbolTracked(symbol);
         SymbolState state = snapshotService.getState(symbol);
 
+        MarketStatus status = marketStatusService.getCurrentStatus();
+
+        // 1️⃣ Always fetch from Yahoo when market is CLOSED
+        if (status != MarketStatus.OPEN) {
+
+            PriceDto yahoo = yahooFinanceClient.getCurrentPrice(symbol);
+
+            if (yahoo != null && yahoo.getCurrentPrice() > 0) {
+                return yahoo;
+            }
+
+            // fallback to snapshot
+            double lastClose = state.getClose();
+
+            return new PriceDto(
+                    symbol.replace(".NS", ""),
+                    lastClose,
+                    lastClose,
+                    0.0,
+                    0.0
+            );
+        }
+
+        // 2️⃣ Market OPEN → use tick + real
         double real = state.getLastRealPrice();
         double tick = state.getLastTickPrice() > 0 ? state.getLastTickPrice() : real;
 

@@ -5,19 +5,20 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
 public class MarketDataSubscriptionManager {
 
-    // Thread-safe set of subscribed symbols
     private final Set<String> subscribedSymbols =
             Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     /**
      * Normalize symbol:
-     * - Convert to uppercase
+     * - Uppercase
+     * - Remove duplicate .NS
      * - Append .NS if missing
      */
     public String normalizeSymbol(String symbol) {
@@ -25,8 +26,14 @@ public class MarketDataSubscriptionManager {
             return null;
         }
 
-        symbol = symbol.toUpperCase();
+        symbol = symbol.toUpperCase().trim();
 
+        // Remove accidental double suffix
+        if (symbol.endsWith(".NS.NS")) {
+            symbol = symbol.replace(".NS.NS", ".NS");
+        }
+
+        // Append .NS if missing
         if (!symbol.endsWith(".NS")) {
             symbol = symbol + ".NS";
         }
@@ -43,13 +50,14 @@ public class MarketDataSubscriptionManager {
             return false;
         }
 
-        // Normalize first
         String normalized = normalizeSymbol(rawSymbol);
 
-        // Remove raw symbol if it exists (prevents RELIANCE + RELIANCE.NS duplicates)
+        // Remove all variants to avoid duplicates
         subscribedSymbols.remove(rawSymbol.toUpperCase());
+        subscribedSymbols.remove(rawSymbol);
+        subscribedSymbols.remove(normalized.replace(".NS", ""));
+        subscribedSymbols.remove(normalized + ".NS");
 
-        // Add only the normalized symbol
         boolean added = subscribedSymbols.add(normalized);
 
         if (added) {
@@ -65,27 +73,27 @@ public class MarketDataSubscriptionManager {
      * Unsubscribe from a symbol
      */
     public boolean unsubscribe(String rawSymbol) {
-        String symbol = normalizeSymbol(rawSymbol);
+        String normalized = normalizeSymbol(rawSymbol);
 
-        if (symbol == null) {
+        if (normalized == null) {
             return false;
         }
 
-        boolean removed = subscribedSymbols.remove(symbol);
+        boolean removed = subscribedSymbols.remove(normalized);
 
         if (removed) {
-            log.info("Unsubscribed from {}", symbol);
+            log.info("Unsubscribed from {}", normalized);
         } else {
-            log.info("Symbol {} was not subscribed", symbol);
+            log.info("Symbol {} was not subscribed", normalized);
         }
 
         return removed;
     }
 
     /**
-     * Get all active subscribed symbols
+     * Get all active subscriptions (sorted)
      */
     public Set<String> getSubscribedSymbols() {
-        return subscribedSymbols;
+        return new TreeSet<>(subscribedSymbols);
     }
 }

@@ -1,8 +1,8 @@
 package com.sai.finance.finance_manager.service;
 
 import com.sai.finance.finance_manager.model.RefreshToken;
-import com.sai.finance.finance_manager.repository.RefreshTokenRepository;
 import com.sai.finance.finance_manager.model.User;
+import com.sai.finance.finance_manager.repository.RefreshTokenRepository;
 import com.sai.finance.finance_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,18 @@ public class RefreshTokenService {
 
     private final long REFRESH_TOKEN_VALIDITY_DAYS = 30;
 
+    // -------------------------
+    // CREATE NEW REFRESH TOKEN
+    // -------------------------
     public RefreshToken createRefreshToken(User user) {
+
+        // Revoke all old tokens for this user
+        refreshTokenRepository.findAll().stream()
+                .filter(rt -> rt.getUser().getId().equals(user.getId()) && !rt.isRevoked())
+                .forEach(rt -> {
+                    rt.setRevoked(true);
+                    refreshTokenRepository.save(rt);
+                });
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
@@ -31,6 +42,9 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
+    // -------------------------
+    // VALIDATE REFRESH TOKEN
+    // -------------------------
     public RefreshToken validateRefreshToken(String token) {
 
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
@@ -47,10 +61,16 @@ public class RefreshTokenService {
         return refreshToken;
     }
 
-    public void revokeToken(String token) {
-        refreshTokenRepository.findByToken(token).ifPresent(rt -> {
-            rt.setRevoked(true);
-            refreshTokenRepository.save(rt);
-        });
+    // -------------------------
+    // ROTATE TOKEN (REVOKE OLD + CREATE NEW)
+    // -------------------------
+    public RefreshToken rotateRefreshToken(RefreshToken oldToken) {
+
+        // Revoke old token
+        oldToken.setRevoked(true);
+        refreshTokenRepository.save(oldToken);
+
+        // Create new token
+        return createRefreshToken(oldToken.getUser());
     }
 }

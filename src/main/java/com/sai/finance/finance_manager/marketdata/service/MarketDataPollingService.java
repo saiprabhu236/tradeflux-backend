@@ -1,6 +1,7 @@
 package com.sai.finance.finance_manager.marketdata.service;
 
 import com.sai.finance.finance_manager.marketdata.dto.PriceDto;
+import com.sai.finance.finance_manager.marketdata.model.SymbolState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,26 +19,27 @@ public class MarketDataPollingService {
     private final MarketDataSubscriptionManager subscriptionManager;
     private final YahooFinanceClient yahooClient;
     private final SnapshotService snapshotService;
+    private final MarketStatusService marketStatusService;
 
-    // Stores the latest REAL delayed price from Yahoo (anchor for ticks)
     private final Map<String, Double> basePrices = new ConcurrentHashMap<>();
 
-    /**
-     * Poll Yahoo Finance every 30 seconds to refresh REAL delayed prices.
-     * These are used as the anchor for synthetic ticks AND to update metrics.
-     */
+    // Poll every 30 seconds for REAL prices
     @Scheduled(fixedRate = 30000)
     public void pollBasePrices() {
         try {
-            Set<String> symbols = subscriptionManager.getSubscribedSymbols();
+            // 1️⃣ Check market status before polling
+            if (!marketStatusService.isMarketOpenNow()) {
+                log.info("Market is not OPEN → Skipping polling");
+                return;
+            }
 
+            Set<String> symbols = subscriptionManager.getSubscribedSymbols();
             if (symbols.isEmpty()) {
                 return;
             }
 
             for (String rawSymbol : symbols) {
 
-                // Normalize before polling
                 String symbol = subscriptionManager.normalizeSymbol(rawSymbol);
 
                 // Fetch REAL delayed price from Yahoo
@@ -50,14 +52,13 @@ public class MarketDataPollingService {
 
                 double realPrice = price.getCurrentPrice();
 
-                // 1️⃣ Update tick base (used by TickEngine)
+                // Update tick base
                 basePrices.put(symbol, realPrice);
 
-                // 2️⃣ Update intraday metrics + real price
+                // Update snapshot (OHLC, previousClose, etc.)
                 snapshotService.updateRealPrice(symbol, realPrice);
             }
 
-            // 3️⃣ Cleanup unsubscribed symbols
             snapshotService.cleanupUnsubscribed();
 
         } catch (Exception e) {
@@ -65,9 +66,7 @@ public class MarketDataPollingService {
         }
     }
 
-    /**
-     * Used by TickBroadcaster to generate synthetic ticks.
-     */
+
     public double getBasePrice(String symbol) {
         return basePrices.getOrDefault(symbol, 0.0);
     }

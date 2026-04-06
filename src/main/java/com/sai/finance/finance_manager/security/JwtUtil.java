@@ -14,41 +14,68 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration}")
-    private long expirationMs;
+    private final long ACCESS_TOKEN_EXPIRATION = 5 * 60 * 1000;                 // 5 minutes
+    private final long REFRESH_TOKEN_EXPIRATION = 30L * 24 * 60 * 60 * 1000;    // 30 days
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String generateToken(String email) {
+    // -------------------------
+    // ACCESS TOKEN
+    // -------------------------
+    public String generateAccessToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String extractEmail(String token) {
+    // -------------------------
+    // REFRESH TOKEN
+    // -------------------------
+    public String generateRefreshToken(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    // -------------------------
+    // CLAIMS
+    // -------------------------
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
     }
 
-    public boolean validateToken(String token) {
+    public String extractEmail(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    // -------------------------
+    // VALIDATION
+    // -------------------------
+    public boolean validateAccessToken(String token) {
+        return !isTokenExpired(token);
+    }
+
+    public boolean validateRefreshToken(String token) {
+        return !isTokenExpired(token);
+    }
+
+    public boolean isTokenExpired(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
+            return extractAllClaims(token).getExpiration().before(new Date());
+        } catch (Exception e) {
             return true;
-        } catch (JwtException e) {
-            return false;
         }
     }
-
 }

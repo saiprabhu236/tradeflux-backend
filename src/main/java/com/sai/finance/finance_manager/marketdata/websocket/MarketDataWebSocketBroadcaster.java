@@ -2,6 +2,8 @@ package com.sai.finance.finance_manager.marketdata.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sai.finance.finance_manager.marketdata.dto.PriceDto;
+import com.sai.finance.finance_manager.marketdata.dto.TickMessageDto;
+import com.sai.finance.finance_manager.marketdata.mapper.MarketDataMapper;
 import com.sai.finance.finance_manager.marketdata.model.SymbolState;
 import com.sai.finance.finance_manager.marketdata.service.MarketDataSubscriptionManager;
 import com.sai.finance.finance_manager.marketdata.service.SnapshotService;
@@ -21,7 +23,9 @@ public class MarketDataWebSocketBroadcaster {
 
     private final SnapshotService snapshotService;
     private final MarketDataSubscriptionManager subscriptionManager;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final WebSocketSessionSubscriptionManager sessionSubscriptionManager;
+    private final ObjectMapper objectMapper;
+    private final MarketDataMapper marketDataMapper;
 
     // Active WebSocket sessions
     private final Set<WebSocketSession> sessions =
@@ -42,7 +46,7 @@ public class MarketDataWebSocketBroadcaster {
      */
     public void broadcastPrice(PriceDto dto) {
         try {
-            String json = mapper.writeValueAsString(dto);
+            String json = objectMapper.writeValueAsString(dto);
             TextMessage message = new TextMessage(json);
 
             for (WebSocketSession session : sessions) {
@@ -58,31 +62,31 @@ public class MarketDataWebSocketBroadcaster {
 
     /**
      * Broadcast synthetic ticks ONLY for subscribed symbols.
-     * Called by TickEngine every 2 seconds.
+     * Called by TickEngine every N seconds.
      */
     public void broadcastAllTicks() {
         try {
-            Set<String> subscribed = subscriptionManager.getSubscribedSymbols();
+            Set<String> globallySubscribed = subscriptionManager.getSubscribedSymbols();
 
-            if (subscribed.isEmpty() || sessions.isEmpty()) {
+            if (globallySubscribed.isEmpty() || sessions.isEmpty()) {
                 return;
             }
 
-            for (String symbol : subscribed) {
+            for (String symbol : globallySubscribed) {
 
                 SymbolState state = snapshotService.getState(symbol);
+                if (state == null) {
+                    continue;
+                }
 
-                TickMessage tick = new TickMessage(
-                        symbol.replace(".NS", ""),
-                        state.getLastTickPrice(),
-                        System.currentTimeMillis()
-                );
-
-                String json = mapper.writeValueAsString(tick);
+                TickMessageDto dto = marketDataMapper.toTickMessage(symbol, state);
+                String json = objectMapper.writeValueAsString(dto);
                 TextMessage message = new TextMessage(json);
 
                 for (WebSocketSession session : sessions) {
-                    if (session.isOpen()) {
+                    if (!session.isOpen()) continue;
+
+                    if (sessionSubscriptionManager.isSessionSubscribed(session.getId(), symbol)) {
                         session.sendMessage(message);
                     }
                 }
@@ -92,7 +96,4 @@ public class MarketDataWebSocketBroadcaster {
             log.error("Error broadcasting ticks", e);
         }
     }
-
-    // Internal tick message format
-    private record TickMessage(String symbol, double price, long timestamp) {}
 }

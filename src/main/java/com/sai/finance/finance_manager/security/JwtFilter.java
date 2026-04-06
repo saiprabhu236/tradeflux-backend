@@ -33,24 +33,32 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+
+        // Skip public endpoints
         if (path.startsWith("/auth") || path.startsWith("/otp")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String authHeader = request.getHeader("Authorization");
-
         String token = null;
         String email = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            email = jwtService.extractUsername(token);
+
+            try {
+                email = jwtService.extractUsername(token);
+            } catch (Exception e) {
+                // Token is invalid or expired
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            if (jwtService.validateToken(token)) {
+            if (jwtService.validateAccessToken(token)) {
 
                 User user = userRepository.findByEmail(email).orElse(null);
 
@@ -66,10 +74,14 @@ public class JwtFilter extends OncePerRequestFilter {
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            } else {
+                // Access token expired → return 401 so frontend can refresh
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
     }
-
 }

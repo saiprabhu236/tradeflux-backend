@@ -4,11 +4,16 @@ import com.sai.finance.finance_manager.marketdata.dto.CandleDto;
 import com.sai.finance.finance_manager.marketdata.dto.PriceDto;
 import com.sai.finance.finance_manager.marketdata.dto.SearchResultDto;
 import com.sai.finance.finance_manager.marketdata.dto.StockMetricsDto;
+import com.sai.finance.finance_manager.marketdata.model.MarketStatus;
 import com.sai.finance.finance_manager.marketdata.service.MarketDataService;
+import com.sai.finance.finance_manager.marketdata.service.MarketStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/market")
@@ -16,6 +21,7 @@ import java.util.List;
 public class MarketDataController {
 
     private final MarketDataService marketDataService;
+    private final MarketStatusService marketStatusService;
 
     // ---------------------------------------------------------
     // 1. SEARCH STOCKS
@@ -76,5 +82,22 @@ public class MarketDataController {
     public Object getSubscriptions() {
         return marketDataService.getActiveSubscriptions();
     }
+
+
+    // ---------------------------------------------------------
+    //  MARKET STATUS OPEN OR CLOSED
+    // ---------------------------------------------------------
+    @GetMapping("/status")
+    public Map<String, Object> getStatus() {
+        MarketStatus status = marketStatusService.getCurrentStatus();
+        ZonedDateTime nowIst = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+
+        return Map.of(
+                "status", status.name(),
+                "isOpen", status == MarketStatus.OPEN,
+                "timestampIst", nowIst.toString()
+        );
+    }
+
 
 }

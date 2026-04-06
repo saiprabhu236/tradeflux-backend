@@ -188,12 +188,9 @@ public class YahooFinanceClient {
         String url = CHART_URL.formatted(symbol, range, interval);
         log.info("Fetching historical → {}", url);
 
-        // --- 1. Add browser-like headers to avoid Yahoo bot-blocking ---
         HttpHeaders headers = new HttpHeaders();
-        headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        headers.add("User-Agent", "Mozilla/5.0");
         headers.add("Accept", "application/json");
-        headers.add("Connection", "keep-alive");
-        //headers.add("Accept-Encoding", "gzip");
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -204,39 +201,49 @@ public class YahooFinanceClient {
                 String.class
         );
 
-        String body = response.getBody();
-
-        // --- 2. Parse JSON safely ---
         JsonNode root;
         try {
-            root = mapper.readTree(body);
+            root = mapper.readTree(response.getBody());
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to parse Yahoo historical JSON", ex);
+            throw new RuntimeException("Failed to parse Yahoo metrics JSON", ex);
         }
-
         JsonNode results = root.path("chart").path("result");
 
-        // --- 3. Guard against null or empty results ---
         if (results.isMissingNode() || results.isNull() || results.size() == 0) {
             throw new RuntimeException("Yahoo returned no historical data for " + symbol);
         }
 
         JsonNode result = results.get(0);
-
         JsonNode timestamps = result.path("timestamp");
-        JsonNode indicators = result.path("indicators").path("quote").get(0);
+        if (timestamps.isMissingNode() || timestamps.isNull()) {
+            throw new RuntimeException("Yahoo returned no timestamps for " + symbol);
+        }
+        JsonNode quoteArray = result.path("indicators").path("quote");
+        if (quoteArray.isMissingNode() || quoteArray.size() == 0) {
+            throw new RuntimeException("Yahoo returned no quote data for " + symbol);
+        }
+
+        JsonNode quote = quoteArray.get(0);
 
         List<CandleDto> candles = new ArrayList<>();
 
-        // --- 4. Build candle list safely ---
         for (int i = 0; i < timestamps.size(); i++) {
+
+            // Skip if any OHLC is missing
+            if (quote.path("open").get(i).isNull()
+                    || quote.path("high").get(i).isNull()
+                    || quote.path("low").get(i).isNull()
+                    || quote.path("close").get(i).isNull()) {
+                continue;
+            }
+
             candles.add(new CandleDto(
                     timestamps.get(i).asLong(),
-                    indicators.path("open").get(i).asDouble(0.0),
-                    indicators.path("high").get(i).asDouble(0.0),
-                    indicators.path("low").get(i).asDouble(0.0),
-                    indicators.path("close").get(i).asDouble(0.0),
-                    indicators.path("volume").get(i).asLong(0L)
+                    quote.path("open").get(i).asDouble(),
+                    quote.path("high").get(i).asDouble(),
+                    quote.path("low").get(i).asDouble(),
+                    quote.path("close").get(i).asDouble(),
+                    quote.path("volume").get(i).asLong(0L)
             ));
         }
 
@@ -286,9 +293,8 @@ public class YahooFinanceClient {
 
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            headers.add("User-Agent", "Mozilla/5.0");
             headers.add("Accept", "application/json");
-            headers.add("Connection", "keep-alive");
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -300,34 +306,29 @@ public class YahooFinanceClient {
             );
 
             JsonNode root = mapper.readTree(response.getBody());
-
             JsonNode result = root.path("chart").path("result").get(0);
+
             JsonNode meta = result.path("meta");
             JsonNode quote = result.path("indicators").path("quote").get(0);
 
+            double open = quote.path("open").get(0).asDouble(0.0);
+            double high = quote.path("high").get(0).asDouble(0.0);
+            double low = quote.path("low").get(0).asDouble(0.0);
+            double close = quote.path("close").get(0).asDouble(0.0);
+            long volume = quote.path("volume").get(0).asLong(0L);
+
+            double fiftyTwoWeekHigh = meta.path("fiftyTwoWeekHigh").asDouble(0.0);
+            double fiftyTwoWeekLow = meta.path("fiftyTwoWeekLow").asDouble(0.0);
+
             return new StockMetricsDto(
                     symbol.replace(".NS", ""),
-
-                    // OPEN
-                    quote.path("open").get(0).asDouble(0.0),
-
-                    // HIGH
-                    quote.path("high").get(0).asDouble(0.0),
-
-                    // LOW
-                    quote.path("low").get(0).asDouble(0.0),
-
-                    // CLOSE (current price)
-                    quote.path("close").get(0).asDouble(0.0),
-
-                    // VOLUME
-                    quote.path("volume").get(0).asLong(0L),
-
-                    // 52-WEEK HIGH
-                    meta.path("fiftyTwoWeekHigh").asDouble(0.0),
-
-                    // 52-WEEK LOW
-                    meta.path("fiftyTwoWeekLow").asDouble(0.0)
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume,
+                    fiftyTwoWeekHigh,
+                    fiftyTwoWeekLow
             );
 
         } catch (Exception ex) {
@@ -364,9 +365,9 @@ public class YahooFinanceClient {
             this.timestamp = timestamp;
         }
     }
+
     public double fetchPriceValue(String symbol) {
-        PriceDto dto = fetchPrice(symbol);
-        return dto != null ? dto.getCurrentPrice() : 0.0;
+        return getCurrentPrice(symbol).getCurrentPrice();
     }
 
 }

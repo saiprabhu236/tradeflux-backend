@@ -25,6 +25,7 @@ public class UserService {
     private final WalletService walletService;
     private final RefreshTokenService refreshTokenService;
 
+
     public UserService(
             UserRepository repo,
             OtpService otpService,
@@ -118,7 +119,7 @@ public class UserService {
         }
 
         // Generate access token (5 minutes)
-        String accessToken = jwtService.generateToken(user.getEmail());
+        String newAccessToken = jwtService.generateAccessToken(user.getEmail());
 
         // Generate refresh token (30 days, stored in DB)
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
@@ -128,20 +129,24 @@ public class UserService {
         repo.save(user);
 
         // Return both tokens
-        return new LoginResponse(accessToken, refreshToken.getToken());
+        return new LoginResponse(newAccessToken, refreshToken.getToken());
     }
 
-    public RefreshTokenResponse refreshAccessToken(String refreshToken) {
+    public RefreshTokenResponse refreshAccessToken(String oldRefreshToken) {
 
-        // Validate refresh token
-        RefreshToken validToken = refreshTokenService.validateRefreshToken(refreshToken);
+        // 1. Validate old refresh token
+        RefreshToken validToken = refreshTokenService.validateRefreshToken(oldRefreshToken);
 
         User user = validToken.getUser();
 
-        // Generate new access token
-        String newAccessToken = jwtService.generateToken(user.getEmail());
+        // 2. Rotate refresh token (revoke old + create new)
+        RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(validToken);
 
-        return new RefreshTokenResponse(newAccessToken);
+        // 3. Generate new access token
+        String newAccessToken = jwtService.generateAccessToken(user.getEmail());
+
+        // 4. Return both tokens
+        return new RefreshTokenResponse(newAccessToken, newRefreshToken.getToken());
     }
 
     public void markUserVerified(String email) {

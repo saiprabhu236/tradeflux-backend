@@ -18,14 +18,15 @@ public class SnapshotService {
 
     private final MarketDataSubscriptionManager subscriptionManager;
 
-    // Only store states for actively subscribed symbols
     private final Map<String, SymbolState> symbolStateMap = new ConcurrentHashMap<>();
 
-    public SymbolState getState(String symbol) {
+    public SymbolState getState(String rawSymbol) {
+        String symbol = subscriptionManager.normalizeSymbol(rawSymbol);
         return symbolStateMap.computeIfAbsent(symbol, s -> new SymbolState());
     }
 
-    public void removeState(String symbol) {
+    public void removeState(String rawSymbol) {
+        String symbol = subscriptionManager.normalizeSymbol(rawSymbol);
         symbolStateMap.remove(symbol);
     }
 
@@ -40,20 +41,22 @@ public class SnapshotService {
     /**
      * Called by polling service whenever a new REAL price is fetched.
      */
-    public void updateRealPrice(String symbol, double price) {
-        log.info("Metrics update for {} → {}", symbol, price);
+    public void updateRealPrice(String rawSymbol, double price) {
+        String symbol = subscriptionManager.normalizeSymbol(rawSymbol);
 
         SymbolState state = getState(symbol);
-
         LocalDate today = LocalDate.now();
 
         // Daily reset
         if (!today.equals(state.getLastResetDate())) {
+            log.info("Daily reset for {}", symbol);
+
             state.setOpen(price);
             state.setHigh(price);
             state.setLow(price);
             state.setClose(price);
             state.setVolume(0);
+            state.setPreviousClose(state.getClose());
             state.setLastResetDate(today);
         }
 
@@ -69,21 +72,62 @@ public class SnapshotService {
         state.setHigh(Math.max(state.getHigh(), price));
         state.setLow(Math.min(state.getLow(), price));
 
-        // Real price + tick base
+        // Real price tracking
         state.setLastRealPrice(price);
         state.setLastRealUpdateTime(System.currentTimeMillis());
+
+        // Tick base
         state.setLastTickPrice(price);
+        // Update previous close ONLY when first real price of the day arrives
+        if (state.getPreviousClose() == 0) {
+            state.setPreviousClose(price);
+        }
+
+        // Update change & changePercent
+        double prev = state.getPreviousClose();
+        if (prev > 0) {
+            double change = price - prev;
+            double changePercent = (change / prev) * 100.0;
+
+            state.setChange(change);
+            state.setChangePercent(changePercent);
+        }
     }
 
-    public void ensureSymbolTracked(String symbol) {
-        getState(symbol);
+    public void ensureSymbolTracked(String rawSymbol) {
+        getState(rawSymbol);
     }
 
-    /**
-     * Cleanup for unsubscribed symbols (optional, can be called periodically if you like).
-     */
     public void cleanupUnsubscribed() {
         Set<String> subscribed = subscriptionManager.getSubscribedSymbols();
         symbolStateMap.keySet().removeIf(s -> !subscribed.contains(s));
     }
+
+    public void updateTickPrice(String rawSymbol, double tickPrice) {
+        String symbol = subscriptionManager.normalizeSymbol(rawSymbol);
+        SymbolState state = getState(symbol);
+
+        state.setLastTickPrice(tickPrice);
+
+        // Update intraday OHLC based on tick
+        if (state.getOpen() == 0) {
+            state.setOpen(tickPrice);
+            state.setHigh(tickPrice);
+            state.setLow(tickPrice);
+        }
+
+        state.setHigh(Math.max(state.getHigh(), tickPrice));
+        state.setLow(Math.min(state.getLow(), tickPrice));
+        state.setClose(tickPrice);
+        // Update change & changePercent based on tick price
+        double prev = state.getPreviousClose();
+        if (prev > 0) {
+            double change = tickPrice - prev;
+            double changePercent = (change / prev) * 100.0;
+
+            state.setChange(change);
+            state.setChangePercent(changePercent);
+        }
+    }
+
 }
