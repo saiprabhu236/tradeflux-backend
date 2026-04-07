@@ -59,6 +59,7 @@ public class TickEngine {
 
             state.setLastTickTime(System.currentTimeMillis());
         }
+        broadcaster.broadcastAllTicks();
     }
 
     private double getVolatilityForTime() {
