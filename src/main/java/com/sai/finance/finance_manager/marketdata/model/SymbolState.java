@@ -33,5 +33,4 @@ public class SymbolState {
     // For daily reset
     private LocalDate lastResetDate = LocalDate.now();
 
-
 }
