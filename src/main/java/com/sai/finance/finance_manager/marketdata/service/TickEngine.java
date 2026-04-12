@@ -4,7 +4,6 @@ import com.sai.finance.finance_manager.marketdata.model.SymbolState;
 import com.sai.finance.finance_manager.marketdata.websocket.MarketDataWebSocketBroadcaster;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +18,7 @@ public class TickEngine {
 
     private final SnapshotService snapshotService;
     private final MarketDataSubscriptionManager subscriptionManager;
+    private final MarketDataWebSocketBroadcaster broadcaster;   // ⭐ YOU FORGOT THIS
 
     private final Random random = new Random();
 
@@ -29,7 +29,9 @@ public class TickEngine {
         if (symbols.isEmpty()) return;
 
         for (String symbol : symbols) {
+
             SymbolState state = snapshotService.getState(symbol);
+            if (state == null) continue;
 
             double real = state.getLastRealPrice();
             if (real <= 0) continue;
@@ -44,7 +46,6 @@ public class TickEngine {
             double randomMove = (random.nextDouble() - 0.5) * volatility;
 
             double newTick = tick + randomMove + meanReversion + momentum;
-
             newTick = clamp(newTick, real * 0.90, real * 1.10);
 
             snapshotService.updateTickPrice(symbol, newTick);
@@ -56,9 +57,10 @@ public class TickEngine {
             state.setBidPrice(bid);
             state.setAskPrice(ask);
             state.setSpread(spread);
-
             state.setLastTickTime(System.currentTimeMillis());
         }
+
+        // ⭐ THIS IS THE LINE THAT WAS MISSING
         broadcaster.broadcastAllTicks();
     }
 

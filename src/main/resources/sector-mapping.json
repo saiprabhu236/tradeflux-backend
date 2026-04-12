@@ -1,0 +1,325 @@
+{
+  "IT": [
+    "TCS.NS",
+    "INFY.NS",
+    "WIPRO.NS",
+    "HCLTECH.NS",
+    "TECHM.NS",
+    "LTIM.NS",
+    "LTTS.NS",
+    "MPHASIS.NS",
+    "COFORGE.NS",
+    "BSOFT.NS",
+    "CYIENT.NS",
+    "ZENSARTECH.NS",
+    "PERSISTENT.NS",
+    "TATAELXSI.NS",
+    "KPITTECH.NS"
+  ],
+
+  "Banking": [
+    "HDFCBANK.NS",
+    "ICICIBANK.NS",
+    "AXISBANK.NS",
+    "KOTAKBANK.NS",
+    "SBIN.NS",
+    "INDUSINDBK.NS",
+    "IDFCFIRSTB.NS",
+    "BANKBARODA.NS",
+    "PNB.NS",
+    "CANBK.NS",
+    "UNIONBANK.NS",
+    "FEDERALBNK.NS",
+    "RBLBANK.NS",
+    "AUBANK.NS",
+    "J&KBANK.NS",
+    "KARURVYSYA.NS",
+    "UCOBANK.NS",
+    "YESBANK.NS",
+    "IDBI.NS"
+  ],
+
+  "NBFC": [
+    "BAJAJFINSV.NS",
+    "BAJAJFINANCE.NS",
+    "M&MFIN.NS",
+    "CHOLAFIN.NS",
+    "L&TFH.NS",
+    "MANAPPURAM.NS",
+    "MUTHOOTFIN.NS",
+    "IBULHSGFIN.NS",
+    "PFC.NS",
+    "RECLTD.NS",
+    "HDFCAMC.NS",
+    "UTIAMC.NS",
+    "CREDITACC.NS",
+    "IIFL.NS",
+    "IIFLWAM.NS",
+    "JMFINANCIL.NS",
+    "REPCOHOME.NS"
+  ],
+
+  "Insurance": [
+    "HDFCLIFE.NS",
+    "SBILIFE.NS",
+    "ICICIGI.NS",
+    "ICICIPRULI.NS",
+    "LICI.NS",
+    "GICRE.NS"
+  ],
+
+  "Auto": [
+    "TATAMOTORS.NS",
+    "MARUTI.NS",
+    "M&M.NS",
+    "HEROMOTOCO.NS",
+    "EICHERMOT.NS",
+    "TVSMOTOR.NS",
+    "ASHOKLEY.NS",
+    "BAJAJ-AUTO.NS",
+    "BALKRISIND.NS",
+    "CEATLTD.NS",
+    "MOTHERSON.NS",
+    "ENDURANCE.NS",
+    "SONACOMS.NS",
+    "JTEKTINDIA.NS",
+    "MINDACORP.NS"
+  ],
+
+  "FMCG": [
+    "HINDUNILVR.NS",
+    "ITC.NS",
+    "NESTLEIND.NS",
+    "BRITANNIA.NS",
+    "DABUR.NS",
+    "MARICO.NS",
+    "COLPAL.NS",
+    "EMAMILTD.NS",
+    "GODREJCP.NS",
+    "RADICO.NS",
+    "TATACONSUM.NS",
+    "UBL.NS",
+    "MCDOWELL-N.NS",
+    "TASTYBITE.NS"
+  ],
+
+  "Pharma": [
+    "SUNPHARMA.NS",
+    "CIPLA.NS",
+    "DRREDDY.NS",
+    "DIVISLAB.NS",
+    "AUROPHARMA.NS",
+    "LUPIN.NS",
+    "TORNTPHARM.NS",
+    "IPCALAB.NS",
+    "GLENMARK.NS",
+    "BIOCON.NS",
+    "GLAND.NS",
+    "GRANULES.NS",
+    "NATCOPHARM.NS",
+    "ERIS.NS",
+    "SUVENPHAR.NS",
+    "WOCKPHARMA.NS",
+    "JBCLAB.NS"
+  ],
+
+  "Healthcare": [
+    "APOLLOHOSP.NS",
+    "FORTIS.NS",
+    "METROPOLIS.NS",
+    "LALPATHLAB.NS",
+    "ASTERDM.NS",
+    "THYROCARE.NS"
+  ],
+
+  "Metals": [
+    "TATASTEEL.NS",
+    "JSWSTEEL.NS",
+    "HINDALCO.NS",
+    "SAIL.NS",
+    "JINDALSTEL.NS",
+    "NATIONALUM.NS",
+    "NMDC.NS",
+    "HINDCOPPER.NS",
+    "MOIL.NS",
+    "RATNAMANI.NS"
+  ],
+
+  "Oil & Gas": [
+    "RELIANCE.NS",
+    "ONGC.NS",
+    "OIL.NS",
+    "GAIL.NS",
+    "IGL.NS",
+    "GUJGASLTD.NS",
+    "PETRONET.NS",
+    "BPCL.NS",
+    "HPCL.NS",
+    "ADANIGREEN.NS",
+    "ADANIGAS.NS"
+  ],
+
+  "Power": [
+    "NTPC.NS",
+    "POWERGRID.NS",
+    "TATAPOWER.NS",
+    "JSWENERGY.NS",
+    "NHPC.NS",
+    "NLCINDIA.NS",
+    "TORNTPOWER.NS",
+    "CESC.NS",
+    "KALPATPOWR.NS"
+  ],
+
+  "Cement": [
+    "ULTRACEMCO.NS",
+    "SHREECEM.NS",
+    "AMBUJACEM.NS",
+    "ACC.NS",
+    "DALBHARAT.NS",
+    "JKCEMENT.NS",
+    "RAMCOCEM.NS",
+    "BIRLACORPN.NS"
+  ],
+
+  "Chemicals": [
+    "DEEPAKNTR.NS",
+    "NAVINFLUOR.NS",
+    "GUJFLUORO.NS",
+    "TATACHEM.NS",
+    "AARTIIND.NS",
+    "VINATIORGA.NS",
+    "FINEORG.NS",
+    "FLUOROCHEM.NS",
+    "NOCIL.NS",
+    "BALAMINES.NS"
+  ],
+
+  "Capital Goods": [
+    "ABB.NS",
+    "SIEMENS.NS",
+    "CUMMINSIND.NS",
+    "THERMAX.NS",
+    "BHEL.NS",
+    "HONAUT.NS",
+    "KIRLOSBROS.NS",
+    "KIRLOSENG.NS",
+    "TRITURBINE.NS"
+  ],
+
+  "Consumer Durables": [
+    "VOLTAS.NS",
+    "WHIRLPOOL.NS",
+    "BLUESTARCO.NS",
+    "KAJARIACER.NS",
+    "CROMPTON.NS",
+    "HAVELLS.NS",
+    "POLYCAB.NS",
+    "TTKPRESTIG.NS",
+    "SYMPHONY.NS"
+  ],
+
+  "Telecom": [
+    "BHARTIARTL.NS",
+    "IDEA.NS",
+    "INDUSTOWER.NS"
+  ],
+
+  "Media": [
+    "ZEEL.NS",
+    "SUNTV.NS",
+    "NETWORK18.NS",
+    "SAREGAMA.NS",
+    "PVRINOX.NS"
+  ],
+
+  "Realty": [
+    "DLF.NS",
+    "OBEROIRLTY.NS",
+    "LODHA.NS",
+    "PRESTIGE.NS",
+    "BRIGADE.NS",
+    "SOBHA.NS",
+    "SUNTECK.NS"
+  ],
+
+  "Infrastructure": [
+    "L&T.NS",
+    "IRCON.NS",
+    "RVNL.NS",
+    "GMRINFRA.NS",
+    "NBCC.NS",
+    "NCC.NS",
+    "KNRCON.NS",
+    "PSPPROJECT.NS"
+  ],
+
+  "PSU": [
+    "SBIN.NS",
+    "BANKBARODA.NS",
+    "CANBK.NS",
+    "UNIONBANK.NS",
+    "PNB.NS",
+    "IRFC.NS",
+    "HUDCO.NS",
+    "BEL.NS",
+    "BEML.NS",
+    "GAIL.NS",
+    "ONGC.NS",
+    "NTPC.NS",
+    "NHPC.NS",
+    "NLCINDIA.NS",
+    "COALINDIA.NS"
+  ],
+
+  "Logistics": [
+    "CONCOR.NS",
+    "TCIEXP.NS",
+    "VRLLOG.NS",
+    "GATI.NS",
+    "BLUEDART.NS"
+  ],
+
+  "Textiles": [
+    "ARVINDFASN.NS",
+    "KPRMILL.NS",
+    "ALOKINDS.NS",
+    "NITINSPIN.NS",
+    "TRIDENT.NS"
+  ],
+
+  "Aviation": [
+    "INDIGO.NS",
+    "SPICEJET.NS"
+  ],
+
+  "Hospitality": [
+    "INDHOTEL.NS",
+    "CHALET.NS",
+    "LEMONTREE.NS"
+  ],
+
+  "Defence": [
+    "HAL.NS",
+    "BDL.NS",
+    "BEL.NS",
+    "MAZDOCK.NS",
+    "MTARTECH.NS"
+  ],
+
+  "Retail": [
+    "DMART.NS",
+    "TRENT.NS",
+    "SHOPERSTOP.NS",
+    "METROBRAND.NS"
+  ],
+
+  "Miscellaneous": [
+    "MAPMYINDIA.NS",
+    "ROUTE.NS",
+    "EASEMYTRIP.NS",
+    "CAMS.NS",
+    "JUSTDIAL.NS",
+    "NAUKRI.NS"
+  ]
+}
