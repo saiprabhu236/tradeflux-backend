@@ -1,4 +1,4 @@
-# Finance Manager Backend — Trading Simulation Platform  
+# TradeFlux Backend — Trading Simulation Platform  
 A production‑grade backend for a **paper‑trading platform** built with **Spring Boot**, featuring **real NSE market data (15‑minute delayed)**, **virtual money**, and a **full simulated trading engine**.
 
 This project demonstrates strong backend engineering skills in:
@@ -16,7 +16,7 @@ This project demonstrates strong backend engineering skills in:
 
 ## 1. Executive Summary
 
-The Finance Manager Backend is a **full trading backend simulation** that uses:
+The TradeFlux Backend is a **full trading backend simulation** that uses:
 
 - **Real NSE prices** (via Yahoo Finance, delayed by ~15 minutes)  
 - **Synthetic tick engine** for live movement  
@@ -314,7 +314,6 @@ See:
 
 API_DOC.md
 
-POSTMAN_COLLECTION.json
 
 Author
   -- Sai Prabhu Dasari  
