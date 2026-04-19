@@ -28,8 +28,8 @@ At a high level, the system consists of:
 - **PostgreSQL** as the single source of truth for persistence  
 - **Rate limiting + JWT security** for safe, production‑style access  
 
-```text
-flowchart LR
+```mermaid
+erDiagram
     Client[Client (Web / Mobile)] -->|HTTP (REST)| API[Spring Boot REST Controllers]
     Client -->|WebSocket| WS[WebSocket Endpoint]
 
