@@ -1,3 +1,17 @@
+
+<p align="left">
+
+<img src="https://img.shields.io/badge/Java-17-red?logo=openjdk" />
+<img src="https://img.shields.io/badge/Spring%20Boot-3.x-green?logo=springboot" />
+<img src="https://img.shields.io/badge/PostgreSQL-Database-blue?logo=postgresql" />
+<img src="https://img.shields.io/badge/WebSocket-Real--Time-orange?logo=websocket" />
+<img src="https://img.shields.io/badge/License-MIT-yellow" />
+<img src="https://img.shields.io/github/stars/saiprabhu236/tradeflux-backend?style=social" />
+<img src="https://img.shields.io/github/forks/saiprabhu236/tradeflux-backend?style=social" />
+
+</p>
+
+
 # TradeFlux Backend — Trading Simulation Platform  
 A production‑grade backend for a **paper‑trading platform** built with **Spring Boot**, featuring **real NSE market data (15‑minute delayed)**, **virtual money**, and a **full simulated trading engine**.
 
